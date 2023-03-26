@@ -1,0 +1,27 @@
+# Django related files
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Virtual environment
+venv/
+.env
+
+# Nuxt.js related files
+node_modules/
+.nuxt/
+dist/
+
+# Miscellaneous
+*.log
+*.swp
+.DS_Store
+.idea/
+.vscode/
+
+# Ignore compiled CSS and JS files
+*.css
+*.css.map
+*.js
+*.js.map

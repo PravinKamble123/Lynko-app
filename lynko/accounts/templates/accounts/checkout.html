@@ -1,0 +1,122 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <h2>Checkout</h2>
+      <form method="POST" action="{% url 'accounts:checkout' %}" id="checkout-form">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="name">Name</label>
+          {{ form.name }}
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          {{ form.email }}
+        </div>
+        <div class="form-group">
+          <label for="address">Address</label>
+          {{ form.address }}
+        </div>
+        <div class="form-group">
+          <label for="zipcode">Zipcode</label>
+          {{ form.zipcode }}
+        </div>
+        <div class="form-group">
+          <label for="city">City</label>
+          {{ form.city }}
+        </div>
+        <div class="form-group">
+          <label for="state">State/Province</label>
+          {{ form.state }}
+        </div>
+        <div class="form-group">
+          <label for="country">Country</label>
+          {{ form.country }}
+        </div>
+        <div class="form-group">
+          <label for="card-element">Credit or debit card</label>
+          <div id="card-element"><!-- Stripe.js injects the Card Element --></div>
+          <!-- Used to display Element errors -->
+          <div id="card-errors" role="alert"></div>
+        </div>
+        <button id="submit-button" class="btn btn-primary">Submit Payment</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    // Create a Stripe client.
+    var stripe = settings.STRIPE_PUBLIC_KEY;
+
+    // Create an instance of Elements.
+    var elements = stripe.elements();
+
+    // Custom styling can be passed to options when creating an Element.
+    var style = {
+      base: {
+        // Add your base input styles here. For example:
+        fontSize: '16px',
+        color: '#32325d',
+      },
+    };
+
+    // Create an instance of the card Element.
+    var card = elements.create('card', {style: style});
+
+    // Add an instance of the card Element into the `card-element` <div>.
+    card.mount('#card-element');
+
+    // Handle form submission.
+    var form = document.getElementById('checkout-form');
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      // Disable the submit button to prevent repeated clicks
+      document.getElementById('submit-button').disabled = true;
+
+      // Get the form data
+      var formData = {
+        'name': form.name.value,
+        'email': form.email.value,
+        'address': form.address.value,
+        'zipcode': form.zipcode.value,
+        'city': form.city.value,
+        'state': form.state.value,
+        'country': form.country.value,
+        'stripeToken': null
+      };
+
+      // Create a token from the card information
+      stripe.createToken(card).then(function(result) {
+        if (result.error) {
+          // Inform the user if there was an error.
+          var errorElement = document.getElementById('card-errors');
+          errorElement.textContent = result.error.message;
+
+          // Enable the submit button
+          document.getElementById('submit-button').disabled = false;
+        } else {
+          // Send the token to your server
+          formData.stripe
+          Token = result.token.id;
+          formData.stripeToken = Token;
+          $.ajax({
+            type: "POST",
+            url: "{% url 'accounts:checkout' %}",
+            data: formData,
+            success: function(response) {
+              // Handle success
+              console.log(response);
+            },
+            error: function(response) {
+              // Handle error
+              console.log(response);
+            },
+          });
+        }
+      });
+    });
+  </script>
+{% endblock %}
